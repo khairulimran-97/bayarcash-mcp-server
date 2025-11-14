@@ -88,7 +88,8 @@ List transactions with optional filters. The AI will suggest filtering by email 
 "List all successful transactions"
 "Show me all pending transactions"
 "Get transactions for customer@example.com"
-"List transactions paid via FPX"
+"List all FPX payments"
+"Show transactions paid via channel 1"
 ```
 
 **Smart filtering:**
@@ -96,6 +97,12 @@ When you use list_transactions after creating a payment, the AI will ask:
 ```
 "Would you like to filter by the email from your last payment: customer@example.com?"
 ```
+
+**Filter by payment channel:**
+Use channel ID (number) not channel code (string):
+- Filter by FPX: use `payment_channel: 1` (not "fpx")
+- Filter by DuitNow: use `payment_channel: 2` (not "duitnow")
+- See all 10 channel IDs in get_payment_channels section
 
 **Returns:**
 - Paginated list of transactions

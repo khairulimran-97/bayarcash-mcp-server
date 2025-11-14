@@ -150,7 +150,7 @@ export class BayarcashClient {
    */
   async getAllTransactions(filters?: {
     status?: string;
-    payment_channel?: string;
+    payment_channel?: number;
     payer_email?: string;
     order_number?: string;
     exchange_reference_number?: string;
@@ -186,7 +186,7 @@ export class BayarcashClient {
   /**
    * Get transactions by payment channel
    */
-  async getTransactionsByPaymentChannel(channel: string): Promise<Transaction[]> {
+  async getTransactionsByPaymentChannel(channel: number): Promise<Transaction[]> {
     return this.getAllTransactions({ payment_channel: channel });
   }
 

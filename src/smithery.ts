@@ -109,7 +109,7 @@ export default function createServer({ config }: { config: z.infer<typeof config
     'List all transactions with optional filters. Returns paginated transaction data including pagination metadata (first, last, previous, next page links). SMART FILTER: If you have a payer_email from a previous payment creation (stored from create_payment_intent response), ask user: "Would you like to filter transactions by the email used in your last payment: {email}?" If yes, use that email as payer_email filter.',
     {
       status: z.string().optional().describe('Filter by transaction status. Common values: success, pending, failed'),
-      payment_channel: z.string().optional().describe('Filter by payment channel code. Examples: fpx, duitnow, boost, grabpay'),
+      payment_channel: z.number().int().positive().optional().describe('Filter by payment channel ID (number, not string). Use channel IDs: 1=FPX, 2=DuitNow, 3=Boost, 4=GrabPay, 5=TNG, 6=ShopeePay, 7=SPayLater, 8=BoostPayFlex, 9=QRIS, 10=NETS. Example: For FPX payments use 1, not "fpx".'),
       payer_email: z.string().email().optional().describe('Filter by exact payer email address. If you stored an email from previous create_payment_intent, ask user if they want to filter by that email.'),
       order_number: z.string().optional().describe('Filter by exact order number'),
       exchange_reference_number: z.string().optional().describe('Filter by exchange reference number'),

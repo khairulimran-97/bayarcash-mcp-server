@@ -145,8 +145,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Filter by transaction status (e.g., success, pending, failed)'
             },
             payment_channel: {
-              type: 'string',
-              description: 'Filter by payment channel'
+              type: 'number',
+              description: 'Filter by payment channel ID (number, not string). Use channel IDs: 1=FPX, 2=DuitNow, 3=Boost, 4=GrabPay, 5=TNG, 6=ShopeePay, 7=SPayLater, 8=BoostPayFlex, 9=QRIS, 10=NETS. Example: For FPX payments use 1, not "fpx".'
             },
             payer_email: {
               type: 'string',
