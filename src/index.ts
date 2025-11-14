@@ -52,7 +52,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'create_payment_intent',
-        description: 'Create a new payment intent for processing payments through Bayarcash. WORKFLOW: 1) If user did not provide portal_key, call get_portals first and ask user to select. 2) If user did not specify payment channel, call get_payment_channels and ask user to select. 3) Ask user if they want to provide phone number (optional). If user already provided these values, use them directly.',
+        description: 'Create a new payment intent for processing payments through Bayarcash. Returns payment intent ID in response. WORKFLOW: 1) If user did not provide portal_key, call get_portals first and ask user to select. 2) If user did not specify payment channel, call get_payment_channels and ask user to select. 3) Ask user if they want to provide phone number (optional). IMPORTANT: Store the returned "id" field (e.g., pi_pGwAaq) to check payment status later.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -94,16 +94,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'get_payment_intent',
-        description: 'Get payment intent details by order number',
+        description: 'Get payment intent details and status by payment intent ID or order number. Use this to check payment status.',
         inputSchema: {
           type: 'object',
           properties: {
-            order_number: {
+            id_or_order_number: {
               type: 'string',
-              description: 'Order number to retrieve'
+              description: 'Payment intent ID (e.g., pi_pGwAaq) or order number. Use the ID from create_payment_intent response for status checks.'
             }
           },
-          required: ['order_number']
+          required: ['id_or_order_number']
         }
       },
       {
@@ -236,7 +236,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_payment_intent': {
-        const result = await bayarcash.getPaymentIntent(args.order_number as string);
+        const result = await bayarcash.getPaymentIntent(args.id_or_order_number as string);
         return {
           content: [
             {

@@ -128,10 +128,10 @@ export class BayarcashClient {
   }
 
   /**
-   * Get payment intent by order number
+   * Get payment intent by ID or order number
    */
-  async getPaymentIntent(orderNumber: string): Promise<any> {
-    const response = await this.axiosInstance.get(`/payment-intents/${orderNumber}`);
+  async getPaymentIntent(idOrOrderNumber: string): Promise<any> {
+    const response = await this.axiosInstance.get(`/payment-intents/${idOrOrderNumber}`);
     return response.data;
   }
 

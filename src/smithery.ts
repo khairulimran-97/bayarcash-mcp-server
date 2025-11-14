@@ -30,7 +30,7 @@ export default function createServer({ config }: { config: z.infer<typeof config
   // Tool: Create payment intent
   server.tool(
     'create_payment_intent',
-    'Create a new payment intent for processing payments through Bayarcash. Returns payment URL and order details. WORKFLOW: 1) If user has NOT provided portal_key, call get_portals first to show list and ask user to select. 2) If user has NOT specified payment channel, call get_payment_channels to show list and ask user to select. 3) Ask user if they want to provide payer telephone number (optional, Malaysia numbers only). 4) If user already provided portal_key and/or payment_channel in their message, use those values directly without asking again.',
+    'Create a new payment intent for processing payments through Bayarcash. Returns payment URL and order details with payment intent ID. WORKFLOW: 1) If user has NOT provided portal_key, call get_portals first to show list and ask user to select. 2) If user has NOT specified payment channel, call get_payment_channels to show list and ask user to select. 3) Ask user if they want to provide payer telephone number (optional, Malaysia numbers only). 4) If user already provided portal_key and/or payment_channel in their message, use those values directly. IMPORTANT: After creating payment, store the returned "id" field (e.g., pi_pGwAaq) - this can be used later to check payment status with get_payment_intent tool.',
     {
       order_number: z.string().describe('Unique order number for this payment. Must be unique across all transactions. Example: ORD-001'),
       amount: z.number().positive().describe('Payment amount in Malaysian Ringgit (MYR). Must be positive. Example: 100.50 for RM100.50'),
@@ -61,12 +61,12 @@ export default function createServer({ config }: { config: z.infer<typeof config
   // Tool: Get payment intent
   server.tool(
     'get_payment_intent',
-    'Get payment intent details by order number',
+    'Get payment intent details and status by payment intent ID or order number. Use this to check the current status of a payment after it has been created.',
     {
-      order_number: z.string().describe('Order number to retrieve')
+      id_or_order_number: z.string().describe('Payment intent ID (e.g., pi_pGwAaq from create_payment_intent response) OR order number (e.g., ORD-001). Payment intent ID is preferred for status checks.')
     },
-    async ({ order_number }) => {
-      const result = await bayarcash.getPaymentIntent(order_number);
+    async ({ id_or_order_number }) => {
+      const result = await bayarcash.getPaymentIntent(id_or_order_number);
       return {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
       };
