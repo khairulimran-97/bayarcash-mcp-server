@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "MCP server for Bayarcash payment gateway integration",
   "main": "build/index.js",
-  "module": "./src/index.ts",
+  "module": "./src/smithery.ts",
   "type": "module",
   "bin": {
     "bayarcash-mcp": "build/index.js"
@@ -44,6 +44,7 @@
   "homepage": "https://github.com/khairulimran-97/bayarcash-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
+    "@smithery/sdk": "^1.7.4",
     "axios": "^1.7.9"
   },
   "devDependencies": {
