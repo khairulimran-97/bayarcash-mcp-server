@@ -6,8 +6,26 @@ description: MCP server for Bayarcash payment gateway integration supporting FPX
 icon: 💳
 homepage: https://github.com/khairulimran-97/bayarcash-mcp-server
 
-env:
-  BAYARCASH_API_TOKEN: ""
-  BAYARCASH_API_SECRET_KEY: ""
-  BAYARCASH_SANDBOX: "true"
-  BAYARCASH_API_VERSION: "v3"
+config:
+  apiToken:
+    type: string
+    description: Your Bayarcash API Token from console.bayar.cash
+    required: true
+
+  apiSecretKey:
+    type: string
+    description: Your Bayarcash API Secret Key for checksums and verification
+    required: true
+
+  useSandbox:
+    type: boolean
+    description: Enable sandbox mode for testing (true) or use production (false)
+    default: true
+    required: false
+
+  apiVersion:
+    type: string
+    description: Bayarcash API version - v3 recommended for new integrations
+    default: "v3"
+    enum: ["v2", "v3"]
+    required: false
