@@ -40,10 +40,10 @@ export interface Transaction {
   id: string;
   order_number: string;
   amount: number;
-  status: string;
+  status: number; // Status code: 0=New, 1=Pending, 2=Failed, 3=Success, 4=Cancelled
   payer_email: string;
   payer_name: string;
-  payment_channel: string;
+  payment_channel: number; // Payment channel ID: 1=FPX, 2=DuitNow, 3=Boost, etc.
   reference_number?: string;
   created_at: string;
 }
