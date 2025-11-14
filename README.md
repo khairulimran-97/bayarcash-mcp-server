@@ -141,12 +141,12 @@ Once installed, simply chat with your AI assistant:
 
 ### Built-in Features
 
-✅ API v2 and v3 support
-✅ Sandbox and production environments
-✅ Automatic checksum generation for security
-✅ Webhook signature verification
-✅ Pagination for transaction lists
-✅ Multiple filter options (status, channel, email, date range)
+- ✅ API v2 and v3 support
+- ✅ Sandbox and production environments
+- ✅ Automatic checksum generation for security
+- ✅ Webhook signature verification
+- ✅ Pagination for transaction lists
+- ✅ Multiple filter options (status, channel, email, date range)
 
 ## 🎯 Use Cases
 
