@@ -94,12 +94,22 @@ export class BayarcashClient {
   }
 
   /**
-   * Get payment channels for a portal
+   * Get payment channels (hardcoded list)
    */
   async getChannels(portalKey?: string): Promise<PaymentChannel[]> {
-    const url = portalKey ? `/portals/${portalKey}/channels` : '/channels';
-    const response = await this.axiosInstance.get(url);
-    return response.data.data || response.data;
+    // Return hardcoded list of common payment channels
+    return [
+      { id: '1', name: 'FPX', code: 'fpx' },
+      { id: '2', name: 'DuitNow', code: 'duitnow' },
+      { id: '3', name: 'Boost', code: 'boost' },
+      { id: '4', name: 'GrabPay', code: 'grabpay' },
+      { id: '5', name: 'Touch n Go', code: 'tng' },
+      { id: '6', name: 'ShopeePay', code: 'shopeepay' },
+      { id: '7', name: 'SPayLater', code: 'spaylater' },
+      { id: '8', name: 'Boost PayFlex', code: 'boostpayflex' },
+      { id: '9', name: 'QRIS', code: 'qris' },
+      { id: '10', name: 'NETS', code: 'nets' }
+    ];
   }
 
   /**
