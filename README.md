@@ -2,6 +2,7 @@
 
 MCP server for Bayarcash payment gateway. Use AI assistants (Claude, ChatGPT, Cursor) to manage payments, check transactions, and integrate with your apps.
 
+[![smithery badge](https://smithery.ai/badge/@khairulimran-97/bayarcash-mcp-server)](https://smithery.ai/server/@khairulimran-97/bayarcash-mcp-server)
 [![npm version](https://badge.fury.io/js/@webimpian%2Fbayarcash-mcp-server.svg)](https://www.npmjs.com/package/@webimpian/bayarcash-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
