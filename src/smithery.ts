@@ -1,272 +1,245 @@
-import { createServer } from '@smithery/sdk/server/stateless.js';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ListResourcesRequestSchema,
-  ReadResourceRequestSchema,
-  ErrorCode,
-  McpError
-} from '@modelcontextprotocol/sdk/types.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
 import { BayarcashClient, BayarcashConfig } from './bayarcash-client.js';
 
-export default createServer({
-  async init(session) {
-    // Get configuration from environment variables
-    const API_TOKEN = process.env.BAYARCASH_API_TOKEN;
-    const API_SECRET_KEY = process.env.BAYARCASH_API_SECRET_KEY;
-    const USE_SANDBOX = process.env.BAYARCASH_SANDBOX !== 'false';
-    const API_VERSION = (process.env.BAYARCASH_API_VERSION as 'v2' | 'v3') || 'v3';
-
-    if (!API_TOKEN || !API_SECRET_KEY) {
-      throw new Error('BAYARCASH_API_TOKEN and BAYARCASH_API_SECRET_KEY environment variables are required');
-    }
-
-    const bayarcashConfig: BayarcashConfig = {
-      apiToken: API_TOKEN,
-      apiSecretKey: API_SECRET_KEY,
-      useSandbox: USE_SANDBOX,
-      apiVersion: API_VERSION
-    };
-
-    const bayarcash = new BayarcashClient(bayarcashConfig);
-
-    // Create MCP server
-    const server = new Server(
-      {
-        name: 'bayarcash-mcp-server',
-        version: '1.0.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-          resources: {}
-        },
-      }
-    );
-
-    // List available tools
-    server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [
-          {
-            name: 'create_payment_intent',
-            description: 'Create a new payment intent for processing payments through Bayarcash',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                order_number: { type: 'string', description: 'Unique order number for this payment' },
-                amount: { type: 'number', description: 'Payment amount in MYR' },
-                payer_email: { type: 'string', description: 'Email address of the payer' },
-                payer_name: { type: 'string', description: 'Name of the payer' },
-                description: { type: 'string', description: 'Description of the payment' },
-                portal_key: { type: 'string', description: 'Portal key for the payment gateway' },
-                payment_optional: { type: 'boolean', description: 'Whether payment is optional' }
-              },
-              required: ['order_number', 'amount', 'payer_email', 'payer_name', 'description', 'portal_key']
-            }
-          },
-          {
-            name: 'get_payment_intent',
-            description: 'Get payment intent details by order number',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                order_number: { type: 'string', description: 'Order number to retrieve' }
-              },
-              required: ['order_number']
-            }
-          },
-          {
-            name: 'get_transaction',
-            description: 'Get transaction details by transaction ID',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                transaction_id: { type: 'string', description: 'Transaction ID to retrieve' }
-              },
-              required: ['transaction_id']
-            }
-          },
-          {
-            name: 'list_transactions',
-            description: 'List all transactions with optional filters',
-            inputSchema: {
-              type: 'object',
-              properties: {
-                status: { type: 'string', description: 'Filter by transaction status' },
-                payment_channel: { type: 'string', description: 'Filter by payment channel' },
-                payer_email: { type: 'string', description: 'Filter by payer email' }
-              }
-            }
-          },
-          {
-            name: 'get_portals',
-            description: 'Get list of available payment portals',
-            inputSchema: { type: 'object', properties: {} }
-          },
-          {
-            name: 'get_payment_channels',
-            description: 'Get list of available payment channels',
-            inputSchema: { type: 'object', properties: {} }
-          },
-          {
-            name: 'get_fpx_banks',
-            description: 'Get list of FPX banks for online banking payments',
-            inputSchema: { type: 'object', properties: {} }
-          }
-        ]
-      };
-    });
-
-    // Handle tool calls
-    server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      try {
-        const { name, arguments: args } = request.params;
-
-        if (!args) {
-          throw new McpError(ErrorCode.InvalidParams, 'Missing arguments');
-        }
-
-        switch (name) {
-          case 'create_payment_intent': {
-            const result = await bayarcash.createPaymentIntent({
-              order_number: args.order_number as string,
-              amount: args.amount as number,
-              payer_email: args.payer_email as string,
-              payer_name: args.payer_name as string,
-              description: args.description as string,
-              portal_key: args.portal_key as string,
-              payment_optional: args.payment_optional as boolean | undefined
-            });
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'get_payment_intent': {
-            const result = await bayarcash.getPaymentIntent(args.order_number as string);
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'get_transaction': {
-            const result = await bayarcash.getTransaction(args.transaction_id as string);
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'list_transactions': {
-            const result = await bayarcash.getAllTransactions(args as any);
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'get_portals': {
-            const result = await bayarcash.getPortals();
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'get_payment_channels': {
-            const result = await bayarcash.getChannels();
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          case 'get_fpx_banks': {
-            const result = await bayarcash.getFpxBanksList();
-            return {
-              content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-            };
-          }
-
-          default:
-            throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
-        }
-      } catch (error: any) {
-        throw new McpError(ErrorCode.InternalError, `Error executing tool: ${error.message}`);
-      }
-    });
-
-    // List available resources
-    server.setRequestHandler(ListResourcesRequestSchema, async () => {
-      return {
-        resources: [
-          {
-            uri: 'bayarcash://portals',
-            mimeType: 'application/json',
-            name: 'Available Payment Portals',
-            description: 'List of all available payment portals'
-          },
-          {
-            uri: 'bayarcash://channels',
-            mimeType: 'application/json',
-            name: 'Payment Channels',
-            description: 'List of all available payment channels'
-          },
-          {
-            uri: 'bayarcash://fpx-banks',
-            mimeType: 'application/json',
-            name: 'FPX Banks',
-            description: 'List of FPX banks for online banking'
-          }
-        ]
-      };
-    });
-
-    // Handle resource reads
-    server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-      const { uri } = request.params;
-
-      try {
-        switch (uri) {
-          case 'bayarcash://portals': {
-            const portals = await bayarcash.getPortals();
-            return {
-              contents: [{
-                uri,
-                mimeType: 'application/json',
-                text: JSON.stringify(portals, null, 2)
-              }]
-            };
-          }
-
-          case 'bayarcash://channels': {
-            const channels = await bayarcash.getChannels();
-            return {
-              contents: [{
-                uri,
-                mimeType: 'application/json',
-                text: JSON.stringify(channels, null, 2)
-              }]
-            };
-          }
-
-          case 'bayarcash://fpx-banks': {
-            const banks = await bayarcash.getFpxBanksList();
-            return {
-              contents: [{
-                uri,
-                mimeType: 'application/json',
-                text: JSON.stringify(banks, null, 2)
-              }]
-            };
-          }
-
-          default:
-            throw new McpError(ErrorCode.InvalidRequest, `Unknown resource: ${uri}`);
-        }
-      } catch (error: any) {
-        throw new McpError(ErrorCode.InternalError, `Error reading resource: ${error.message}`);
-      }
-    });
-
-    return server;
-  }
+// Configuration schema for Smithery
+export const configSchema = z.object({
+  apiToken: z.string().describe('Your Bayarcash API Token from console.bayar.cash'),
+  apiSecretKey: z.string().describe('Your Bayarcash API Secret Key'),
+  useSandbox: z.boolean().default(true).describe('Enable sandbox mode for testing'),
+  apiVersion: z.enum(['v2', 'v3']).default('v3').describe('Bayarcash API version')
 });
+
+export default function createServer({ config }: { config: z.infer<typeof configSchema> }) {
+  // Initialize Bayarcash client
+  const bayarcashConfig: BayarcashConfig = {
+    apiToken: config.apiToken,
+    apiSecretKey: config.apiSecretKey,
+    useSandbox: config.useSandbox,
+    apiVersion: config.apiVersion
+  };
+
+  const bayarcash = new BayarcashClient(bayarcashConfig);
+
+  // Create MCP server
+  const server = new McpServer({
+    name: 'bayarcash-mcp-server',
+    version: '1.0.0',
+  });
+
+  // Tool: Create payment intent
+  server.tool(
+    'create_payment_intent',
+    'Create a new payment intent for processing payments through Bayarcash',
+    {
+      order_number: z.string().describe('Unique order number for this payment'),
+      amount: z.number().describe('Payment amount in MYR'),
+      payer_email: z.string().describe('Email address of the payer'),
+      payer_name: z.string().describe('Name of the payer'),
+      description: z.string().describe('Description of the payment'),
+      portal_key: z.string().describe('Portal key for the payment gateway'),
+      payment_optional: z.boolean().optional().describe('Whether payment is optional')
+    },
+    async ({ order_number, amount, payer_email, payer_name, description, portal_key, payment_optional }) => {
+      const result = await bayarcash.createPaymentIntent({
+        order_number,
+        amount,
+        payer_email,
+        payer_name,
+        description,
+        portal_key,
+        payment_optional
+      });
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get payment intent
+  server.tool(
+    'get_payment_intent',
+    'Get payment intent details by order number',
+    {
+      order_number: z.string().describe('Order number to retrieve')
+    },
+    async ({ order_number }) => {
+      const result = await bayarcash.getPaymentIntent(order_number);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get transaction
+  server.tool(
+    'get_transaction',
+    'Get transaction details by transaction ID',
+    {
+      transaction_id: z.string().describe('Transaction ID to retrieve')
+    },
+    async ({ transaction_id }) => {
+      const result = await bayarcash.getTransaction(transaction_id);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get transaction by order
+  server.tool(
+    'get_transaction_by_order',
+    'Get transaction details by order number',
+    {
+      order_number: z.string().describe('Order number to retrieve')
+    },
+    async ({ order_number }) => {
+      const result = await bayarcash.getTransactionByOrderNumber(order_number);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: List transactions
+  server.tool(
+    'list_transactions',
+    'List all transactions with optional filters',
+    {
+      status: z.string().optional().describe('Filter by transaction status'),
+      payment_channel: z.string().optional().describe('Filter by payment channel'),
+      payer_email: z.string().optional().describe('Filter by payer email'),
+      order_number: z.string().optional().describe('Filter by order number'),
+      page: z.number().optional().describe('Page number for pagination'),
+      per_page: z.number().optional().describe('Number of items per page')
+    },
+    async (filters) => {
+      const result = await bayarcash.getAllTransactions(filters);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get portals
+  server.tool(
+    'get_portals',
+    'Get list of available payment portals',
+    {},
+    async () => {
+      const result = await bayarcash.getPortals();
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get payment channels
+  server.tool(
+    'get_payment_channels',
+    'Get list of available payment channels',
+    {
+      portal_key: z.string().optional().describe('Optional portal key to filter channels')
+    },
+    async ({ portal_key }) => {
+      const result = await bayarcash.getChannels(portal_key);
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Get FPX banks
+  server.tool(
+    'get_fpx_banks',
+    'Get list of FPX banks for online banking payments',
+    {},
+    async () => {
+      const result = await bayarcash.getFpxBanksList();
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Verify callback
+  server.tool(
+    'verify_callback',
+    'Verify callback data from Bayarcash webhook',
+    {
+      callback_data: z.record(z.any()).describe('Callback data received from Bayarcash'),
+      checksum: z.string().describe('Checksum received with the callback')
+    },
+    async ({ callback_data, checksum }) => {
+      const isValid = bayarcash.verifyCallbackData(callback_data, checksum);
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ valid: isValid }, null, 2) }]
+      };
+    }
+  );
+
+  // Tool: Create FPX Direct Debit Enrollment
+  server.tool(
+    'create_fpx_direct_debit_enrollment',
+    'Create FPX Direct Debit enrollment intent',
+    {
+      order_number: z.string().describe('Unique order number'),
+      payer_email: z.string().describe('Payer email address'),
+      payer_name: z.string().describe('Payer name'),
+      bank_code: z.string().describe('FPX bank code'),
+      frequency: z.string().describe('Payment frequency (e.g., monthly, weekly)'),
+      max_amount: z.number().describe('Maximum amount per transaction')
+    },
+    async ({ order_number, payer_email, payer_name, bank_code, frequency, max_amount }) => {
+      const result = await bayarcash.createFpxDirectDebitEnrollmentIntent({
+        order_number,
+        payer_email,
+        payer_name,
+        bank_code,
+        frequency,
+        max_amount
+      });
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
+      };
+    }
+  );
+
+  // Resource: Portals
+  server.resource(
+    'bayarcash://portals',
+    'Available Payment Portals',
+    'List of all available payment portals and their configurations',
+    'application/json',
+    async () => {
+      const portals = await bayarcash.getPortals();
+      return JSON.stringify(portals, null, 2);
+    }
+  );
+
+  // Resource: Channels
+  server.resource(
+    'bayarcash://channels',
+    'Payment Channels',
+    'List of all available payment channels across all portals',
+    'application/json',
+    async () => {
+      const channels = await bayarcash.getChannels();
+      return JSON.stringify(channels, null, 2);
+    }
+  );
+
+  // Resource: FPX Banks
+  server.resource(
+    'bayarcash://fpx-banks',
+    'FPX Banks',
+    'List of FPX banks available for online banking payments',
+    'application/json',
+    async () => {
+      const banks = await bayarcash.getFpxBanksList();
+      return JSON.stringify(banks, null, 2);
+    }
+  );
+
+  return server.server;
+}
