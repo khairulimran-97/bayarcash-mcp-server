@@ -16,7 +16,9 @@
     "build": "tsc",
     "start": "node build/index.js",
     "dev": "tsc && node build/index.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "smithery:build": "npx @smithery/cli build",
+    "smithery:dev": "npx @smithery/cli dev"
   },
   "keywords": [
     "mcp",
