@@ -132,7 +132,7 @@ Talk to your AI naturally:
 
 ## Links
 
-- **Smithery:** https://server.smithery.ai/@khairulimran-97/bayarcash-mcp-server
+- **Smithery Marketplace:** https://smithery.ai/server/@khairulimran-97/bayarcash-mcp-server
 - **Repository:** https://github.com/khairulimran-97/bayarcash-mcp-server
 - **Bayarcash:** https://bayar.cash
 - **MCP Docs:** https://modelcontextprotocol.io
