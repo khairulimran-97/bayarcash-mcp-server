@@ -60,7 +60,7 @@ Talk to your AI naturally:
 
 ## Features
 
-**10 Tools Available:**
+**8 Tools Available:**
 - `create_payment_intent` - Create payment links with order details
 - `get_payment_intent` - Get payment intent by order number
 - `get_transaction` - Get transaction by ID
@@ -69,8 +69,6 @@ Talk to your AI naturally:
 - `get_portals` - List your payment portals
 - `get_payment_channels` - List available payment channels
 - `get_fpx_banks` - List FPX online banking banks
-- `verify_callback` - Verify webhook authenticity
-- `create_fpx_direct_debit_enrollment` - Enroll FPX Direct Debit
 
 **Payment Channels Supported:**
 - FPX (Online Banking - 20+ banks)
@@ -81,8 +79,6 @@ Talk to your AI naturally:
 
 **Built-in Features:**
 - ✅ Sandbox & production environments
-- ✅ Automatic checksum generation
-- ✅ Webhook signature verification
 - ✅ API v2 & v3 support
 - ✅ Transaction filtering & pagination
 
@@ -103,7 +99,7 @@ Talk to your AI naturally:
 ```
 "Help me integrate Bayarcash in my Laravel app"
 "Create a test payment for RM 50"
-"Verify this webhook callback: [paste data]"
+"Show me payment channels for my portal"
 ```
 
 **For Business:**

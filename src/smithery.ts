@@ -164,49 +164,6 @@ export default function createServer({ config }: { config: z.infer<typeof config
     }
   );
 
-  // Tool: Verify callback
-  server.tool(
-    'verify_callback',
-    'Verify callback data from Bayarcash webhook. Returns true if checksum is valid, false otherwise.',
-    {
-      callback_data: z.record(z.any()).describe('Callback data object received from Bayarcash webhook. Should contain all callback parameters.'),
-      checksum: z.string().describe('Checksum string received with the callback. Used to verify data authenticity and integrity.')
-    },
-    async ({ callback_data, checksum }) => {
-      const isValid = bayarcash.verifyCallbackData(callback_data, checksum);
-      return {
-        content: [{ type: 'text', text: JSON.stringify({ valid: isValid }, null, 2) }]
-      };
-    }
-  );
-
-  // Tool: Create FPX Direct Debit Enrollment
-  server.tool(
-    'create_fpx_direct_debit_enrollment',
-    'Create FPX Direct Debit enrollment intent',
-    {
-      order_number: z.string().describe('Unique order number'),
-      payer_email: z.string().describe('Payer email address'),
-      payer_name: z.string().describe('Payer name'),
-      bank_code: z.string().describe('FPX bank code'),
-      frequency: z.string().describe('Payment frequency (e.g., monthly, weekly)'),
-      max_amount: z.number().describe('Maximum amount per transaction')
-    },
-    async ({ order_number, payer_email, payer_name, bank_code, frequency, max_amount }) => {
-      const result = await bayarcash.createFpxDirectDebitEnrollmentIntent({
-        order_number,
-        payer_email,
-        payer_name,
-        bank_code,
-        frequency,
-        max_amount
-      });
-      return {
-        content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
-      };
-    }
-  );
-
   // Resource: Portals
   server.resource(
     'portals',

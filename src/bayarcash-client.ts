@@ -1,5 +1,4 @@
 import axios, { AxiosInstance } from 'axios';
-import crypto from 'crypto';
 
 export interface BayarcashConfig {
   apiToken: string;
@@ -35,7 +34,6 @@ export interface PaymentIntent {
   portal_key: string;
   payment_channel?: number;
   payer_telephone_number?: number;
-  checksum?: string;
 }
 
 export interface Transaction {
@@ -88,16 +86,6 @@ export class BayarcashClient {
   }
 
   /**
-   * Generate checksum for payment intent
-   */
-  private generateChecksum(data: string): string {
-    return crypto
-      .createHmac('sha256', this.apiSecretKey)
-      .update(data)
-      .digest('hex');
-  }
-
-  /**
    * Get available portals
    */
   async getPortals(): Promise<Portal[]> {
@@ -126,12 +114,6 @@ export class BayarcashClient {
    * Create payment intent
    */
   async createPaymentIntent(intent: PaymentIntent): Promise<any> {
-    // Generate checksum if secret key is available
-    if (this.apiSecretKey && !intent.checksum) {
-      const checksumData = `${intent.order_number}|${intent.amount}|${intent.payer_email}`;
-      intent.checksum = this.generateChecksum(checksumData);
-    }
-
     const response = await this.axiosInstance.post('/payment-intents', intent);
     return response.data;
   }
@@ -203,56 +185,5 @@ export class BayarcashClient {
   async getTransactionByReferenceNumber(referenceNumber: string): Promise<Transaction> {
     const response = await this.axiosInstance.get(`/transactions/reference/${referenceNumber}`);
     return response.data.data || response.data;
-  }
-
-  /**
-   * Verify callback data
-   */
-  verifyCallbackData(data: Record<string, any>, receivedChecksum: string): boolean {
-    // Sort keys and create verification string
-    const sortedKeys = Object.keys(data).sort();
-    const verificationString = sortedKeys
-      .map(key => `${key}=${data[key]}`)
-      .join('|');
-
-    const calculatedChecksum = this.generateChecksum(verificationString);
-    return calculatedChecksum === receivedChecksum;
-  }
-
-  /**
-   * Create FPX Direct Debit Enrollment Intent
-   */
-  async createFpxDirectDebitEnrollmentIntent(data: {
-    order_number: string;
-    payer_email: string;
-    payer_name: string;
-    bank_code: string;
-    frequency: string;
-    max_amount: number;
-  }): Promise<any> {
-    const response = await this.axiosInstance.post('/fpx/direct-debit/enrollment', data);
-    return response.data;
-  }
-
-  /**
-   * Create FPX Direct Debit Maintenance Intent
-   */
-  async createFpxDirectDebitMaintenanceIntent(data: {
-    mandate_reference: string;
-    action: 'suspend' | 'resume' | 'update';
-  }): Promise<any> {
-    const response = await this.axiosInstance.post('/fpx/direct-debit/maintenance', data);
-    return response.data;
-  }
-
-  /**
-   * Create FPX Direct Debit Termination Intent
-   */
-  async createFpxDirectDebitTerminationIntent(data: {
-    mandate_reference: string;
-    reason?: string;
-  }): Promise<any> {
-    const response = await this.axiosInstance.post('/fpx/direct-debit/termination', data);
-    return response.data;
   }
 }

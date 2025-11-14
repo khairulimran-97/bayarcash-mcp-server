@@ -199,58 +199,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: 'object',
           properties: {}
         }
-      },
-      {
-        name: 'verify_callback',
-        description: 'Verify callback data from Bayarcash webhook',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            callback_data: {
-              type: 'object',
-              description: 'Callback data received from Bayarcash'
-            },
-            checksum: {
-              type: 'string',
-              description: 'Checksum received with the callback'
-            }
-          },
-          required: ['callback_data', 'checksum']
-        }
-      },
-      {
-        name: 'create_fpx_direct_debit_enrollment',
-        description: 'Create FPX Direct Debit enrollment intent',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            order_number: {
-              type: 'string',
-              description: 'Unique order number'
-            },
-            payer_email: {
-              type: 'string',
-              description: 'Payer email address'
-            },
-            payer_name: {
-              type: 'string',
-              description: 'Payer name'
-            },
-            bank_code: {
-              type: 'string',
-              description: 'FPX bank code'
-            },
-            frequency: {
-              type: 'string',
-              description: 'Payment frequency (e.g., monthly, weekly)'
-            },
-            max_amount: {
-              type: 'number',
-              description: 'Maximum amount per transaction'
-            }
-          },
-          required: ['order_number', 'payer_email', 'payer_name', 'bank_code', 'frequency', 'max_amount']
-        }
       }
     ]
   };
@@ -361,40 +309,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'get_fpx_banks': {
         const result = await bayarcash.getFpxBanksList();
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
-        };
-      }
-
-      case 'verify_callback': {
-        const isValid = bayarcash.verifyCallbackData(
-          args.callback_data as Record<string, any>,
-          args.checksum as string
-        );
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({ valid: isValid }, null, 2)
-            }
-          ]
-        };
-      }
-
-      case 'create_fpx_direct_debit_enrollment': {
-        const result = await bayarcash.createFpxDirectDebitEnrollmentIntent({
-          order_number: args.order_number as string,
-          payer_email: args.payer_email as string,
-          payer_name: args.payer_name as string,
-          bank_code: args.bank_code as string,
-          frequency: args.frequency as string,
-          max_amount: args.max_amount as number
-        });
         return {
           content: [
             {
